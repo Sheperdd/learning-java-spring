@@ -18,7 +18,7 @@ Each project teaches one thing that makes Spring worth using.
 - [ ] **11-modulith** (stretch): restructure a multi-feature app with Spring Modulith (a modular monolith).
 
 ## Delivery track (Git, GitHub, CI/CD)
-- [ ] **D0, before 01:**
+- [x] **D0, before 01:**
   - What git is, then `git init`/status/add/commit.
   - Connect `gh auth login` and `gh repo create`, then push the root repo.
   - Why `.gitignore` matters.
