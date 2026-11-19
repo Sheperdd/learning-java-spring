@@ -1,0 +1,25 @@
+# Build output
+target/
+build/
+*.class
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets & local config
+.env
+*.env
+application-local.*
+
+# Claude Code per-machine settings (shared settings.json is committed)
+.claude/settings.local.json
+**/.claude/settings.local.json
