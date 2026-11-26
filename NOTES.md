@@ -10,6 +10,7 @@ Shane's preferences and working notes. Update this whenever he states a preferen
 - He prefers the GitHub web UI for *writing* issues and PR descriptions. Offer `gh ... --web` or the web steps alongside the CLI command.
 - He can't scroll far back in long chats. When a question refers to an earlier answer, restate it briefly instead of saying "as in Q4", and keep decisions in files (README, CONTEXT.md).
 - `git log` dropped him into the pager and he got stuck. Prefer `git log --oneline -N` in instructions.
+- He sometimes hands off repetitive or prose work: "write the remaining tests", "create the commit message", "do the glossary/README yourself". Do it, then point out what to read closely. Commit messages are still a skill he's practising, so nudge him to write the next one himself (see LR-0013).
 - Environment: Windows 11, Docker Desktop, gh CLI.
   - Java 25 LTS is being installed (Temurin, via winget).
   - Oracle Java 23 is also installed, and its `javapath` entry is on the system PATH. `~/.bashrc` pins `JAVA_HOME` so Java 25 wins.

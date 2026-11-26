@@ -22,7 +22,7 @@ Domain terms (Account, Transfer, Sender, Fee policy, …) are defined in [`../CO
 Each milestone is one feature branch and one PR.
 
 - [x] **1. Account and repository** (PR #2): an immutable `Account` record (validated, with `withBalance`) and an in-memory `AccountRepository` (`findById` returning `Optional`, `save`). Plain JUnit tests, no Spring.
-- [ ] **2. Transfers wired by hand**: the `FeePolicy` interface with `FlatFeePolicy` ($1.50) and `NoFeePolicy`, and a `TransferService` enforcing the rules (sender pays the fee, insufficient funds, same account, non-positive amount, currency mismatch, all-or-nothing). A `HandWiredApp` `main` builds everything with `new`. Tests pass fakes in through constructors.
+- [x] **2. Transfers wired by hand** (PR #5): the `FeePolicy` interface with `FlatFeePolicy` ($1.50) and `NoFeePolicy`, and a `TransferService` enforcing the rules (sender pays the fee, insufficient funds, same account, non-positive amount, currency mismatch, all-or-nothing). A `HandWiredApp` `main` builds everything with `new`. Tests pass fakes in through constructors.
 - [ ] **3. The Spring container, explicitly**: an `AppConfig` with `@Configuration` and `@Bean`, started by `AnnotationConfigApplicationContext`. Prove beans are singletons, and swap the fee policy in one place.
 - [ ] **4. Spring Boot**: component scanning (`@Service`, `@Repository`), fee policy chosen by `bank.fees.policy=flat|none` via `@ConditionalOnProperty`, a `CommandLineRunner` demo transfer, and a `@SpringBootTest` for each property value. Compare with milestones 2 and 3.
 - [ ] **5. Scopes and lifecycle**: seed accounts in `@PostConstruct`, log on `@PreDestroy`, and run a singleton vs prototype experiment. Also: why a stateful singleton is a bug waiting for a second thread. That pays off the `ponytail:` plain-`HashMap` shortcut in `AccountRepository`, so fix it here.
@@ -40,3 +40,9 @@ Each milestone is one feature branch and one PR.
 - Validate in the record's compact constructor. Every way of creating an `Account`, including `withBalance`, passes through it, so an invalid account can't exist.
 - A test has to be able to fail. `assertThat(x)` with nothing chained checks nothing. Test right next to a boundary, on both sides (`0.00` accepted, `-0.01` rejected).
 - Test state must not be shared. `static` means one copy per class, and JUnit creates a fresh test instance per `@Test`, so the repository goes in an instance field.
+
+**Milestone 2**
+- A class receives its collaborators through the constructor; it doesn't `new` them. Adding a fee policy means one new class that implements `FeePolicy` and one changed line in `HandWiredApp`. `TransferService` doesn't change.
+- Validate before mutating. Every rule is checked before anything is saved, so a refused transfer leaves both balances untouched.
+- `==` on objects compares memory location, not contents. Strings need `.equals`. The test uses `new String("A-001")` because two literals share one object and would hide the bug.
+- The caller sends IDs and the service loads the current `Account` from the repository. An `Account` object the caller holds is a stale snapshot.
