@@ -7,7 +7,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import io.github.sheperdd.iocbasics.account.Account;
 import io.github.sheperdd.iocbasics.account.AccountRepository;
-import io.github.sheperdd.iocbasics.transfer.FeePolicy;
 import io.github.sheperdd.iocbasics.transfer.InsufficientFundsException;
 import io.github.sheperdd.iocbasics.transfer.TransferService;
 
