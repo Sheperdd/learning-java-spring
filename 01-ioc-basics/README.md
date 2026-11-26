@@ -21,11 +21,11 @@ Domain terms (Account, Transfer, Sender, Fee policy, …) are defined in [`../CO
 ## Milestones
 Each milestone is one feature branch and one PR.
 
-- [ ] **1. Account and repository**: an immutable `Account` record (validated, with `withBalance`) and an in-memory `AccountRepository` (`findById` returning `Optional`, `save`). Plain JUnit tests, no Spring.
+- [x] **1. Account and repository** (PR #2): an immutable `Account` record (validated, with `withBalance`) and an in-memory `AccountRepository` (`findById` returning `Optional`, `save`). Plain JUnit tests, no Spring.
 - [ ] **2. Transfers wired by hand**: the `FeePolicy` interface with `FlatFeePolicy` ($1.50) and `NoFeePolicy`, and a `TransferService` enforcing the rules (sender pays the fee, insufficient funds, same account, non-positive amount, currency mismatch, all-or-nothing). A `HandWiredApp` `main` builds everything with `new`. Tests pass fakes in through constructors.
 - [ ] **3. The Spring container, explicitly**: an `AppConfig` with `@Configuration` and `@Bean`, started by `AnnotationConfigApplicationContext`. Prove beans are singletons, and swap the fee policy in one place.
 - [ ] **4. Spring Boot**: component scanning (`@Service`, `@Repository`), fee policy chosen by `bank.fees.policy=flat|none` via `@ConditionalOnProperty`, a `CommandLineRunner` demo transfer, and a `@SpringBootTest` for each property value. Compare with milestones 2 and 3.
-- [ ] **5. Scopes and lifecycle**: seed accounts in `@PostConstruct`, log on `@PreDestroy`, and run a singleton vs prototype experiment. Also: why a stateful singleton is a bug waiting for a second thread.
+- [ ] **5. Scopes and lifecycle**: seed accounts in `@PostConstruct`, log on `@PreDestroy`, and run a singleton vs prototype experiment. Also: why a stateful singleton is a bug waiting for a second thread. That pays off the `ponytail:` plain-`HashMap` shortcut in `AccountRepository`, so fix it here.
 
 ## How to run
 ```bash
@@ -35,3 +35,8 @@ Each milestone is one feature branch and one PR.
 
 ## What I learned
 <!-- Filled in by /wrap-up, in my own words. -->
+**Milestone 1**
+- Never compare money with `equals`. `BigDecimal.equals` also compares scale, so `5.00` isn't equal to `5`. Use `compareTo` (and `isEqualByComparingTo` in tests), and compare its result against 0, not `== 1`.
+- Validate in the record's compact constructor. Every way of creating an `Account`, including `withBalance`, passes through it, so an invalid account can't exist.
+- A test has to be able to fail. `assertThat(x)` with nothing chained checks nothing. Test right next to a boundary, on both sides (`0.00` accepted, `-0.01` rejected).
+- Test state must not be shared. `static` means one copy per class, and JUnit creates a fresh test instance per `@Test`, so the repository goes in an instance field.
