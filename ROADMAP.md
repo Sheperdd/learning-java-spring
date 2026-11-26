@@ -22,7 +22,7 @@ Each project teaches one thing that makes Spring worth using.
   - What git is, then `git init`/status/add/commit.
   - Connect `gh auth login` and `gh repo create`, then push the root repo.
   - Why `.gitignore` matters.
-- [ ] **D1, with 01:**
+- [x] **D1, with 01:**
   - The professional loop: issue → feature branch → small Conventional Commits → PR (template + self-review) → squash-merge → delete the branch.
 - [ ] **D2, with 02:**
   - First GitHub Actions CI workflow (`./mvnw verify` on PR, path filters per sub-project).
