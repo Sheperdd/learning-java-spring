@@ -35,6 +35,14 @@ _Avoid_: read-only, constant (a `final` field holding a mutable object is not im
 A class receives its collaborators (e.g. a `FeePolicy`) from outside, through its constructor, instead of creating them with `new` itself. In this workspace, injection is always constructor injection.
 _Avoid_: DI is fine as an abbreviation; avoid "autowiring" (Spring's mechanism for it, not the idea)
 
+**Bean**:
+An object that the Spring container creates, wires and manages, for example from a `@Bean` method in a `@Configuration` class. Its default scope is singleton: one shared instance per container.
+_Avoid_: component (that's one way to declare a bean, via scanning), Java bean (the old getter/setter convention, unrelated)
+
+**ApplicationContext**:
+Spring's container. It reads configuration (`AppConfig`), builds the **beans** in dependency order, hands them out (`getBean`), and runs their shutdown callbacks on `close()`.
+_Avoid_: bean factory (the lower-level interface it extends), Spring (too vague)
+
 **Composition root**:
 The single place where the app's objects are created and connected, in dependency order, and so where choices like the fee policy are made. In 01 M2 it is `HandWiredApp.main`; from M3 on, the Spring `ApplicationContext` plays this role.
 _Avoid_: wiring code, setup, bootstrap

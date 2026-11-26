@@ -14,3 +14,4 @@ Shane's preferences and working notes. Update this whenever he states a preferen
 - Environment: Windows 11, Docker Desktop, gh CLI.
   - Java 25 LTS is being installed (Temurin, via winget).
   - Oracle Java 23 is also installed, and its `javapath` entry is on the system PATH. `~/.bashrc` pins `JAVA_HOME` so Java 25 wins.
+- Sometimes asks to skip the `/wrap-up` quiz and have Claude write the wrap-up files. Respect it, but open the next session with one retrieval question on the skipped topic (e.g. `isSameAs` vs `isEqualTo`).
