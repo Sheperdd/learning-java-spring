@@ -4,7 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.stereotype.Repository;
+
 /** In-memory store of accounts, keyed by account ID. */
+@Repository
 public class AccountRepository {
 
     // ponytail: plain HashMap, not thread-safe. Milestone 5 shows why that matters
