@@ -23,7 +23,7 @@ Each milestone is one feature branch and one PR.
 
 - [x] **1. Account and repository** (PR #2): an immutable `Account` record (validated, with `withBalance`) and an in-memory `AccountRepository` (`findById` returning `Optional`, `save`). Plain JUnit tests, no Spring.
 - [x] **2. Transfers wired by hand** (PR #5): the `FeePolicy` interface with `FlatFeePolicy` ($1.50) and `NoFeePolicy`, and a `TransferService` enforcing the rules (sender pays the fee, insufficient funds, same account, non-positive amount, currency mismatch, all-or-nothing). A `HandWiredApp` `main` builds everything with `new`. Tests pass fakes in through constructors.
-- [ ] **3. The Spring container, explicitly**: an `AppConfig` with `@Configuration` and `@Bean`, started by `AnnotationConfigApplicationContext`. Prove beans are singletons, and swap the fee policy in one place.
+- [x] **3. The Spring container, explicitly** (PR #7): an `AppConfig` with `@Configuration` and `@Bean`, started by `AnnotationConfigApplicationContext`. Prove beans are singletons, and swap the fee policy in one place.
 - [ ] **4. Spring Boot**: component scanning (`@Service`, `@Repository`), fee policy chosen by `bank.fees.policy=flat|none` via `@ConditionalOnProperty`, a `CommandLineRunner` demo transfer, and a `@SpringBootTest` for each property value. Compare with milestones 2 and 3.
 - [ ] **5. Scopes and lifecycle**: seed accounts in `@PostConstruct`, log on `@PreDestroy`, and run a singleton vs prototype experiment. Also: why a stateful singleton is a bug waiting for a second thread. That pays off the `ponytail:` plain-`HashMap` shortcut in `AccountRepository`, so fix it here.
 
@@ -46,3 +46,10 @@ Each milestone is one feature branch and one PR.
 - Validate before mutating. Every rule is checked before anything is saved, so a refused transfer leaves both balances untouched.
 - `==` on objects compares memory location, not contents. Strings need `.equals`. The test uses `new String("A-001")` because two literals share one object and would hide the bug.
 - The caller sends IDs and the service loads the current `Account` from the repository. An `Account` object the caller holds is a stale snapshot.
+
+**Milestone 3**
+- `@Bean` methods still use `new`. The difference is that Spring calls them: it builds the beans in dependency order and gives every class the same instance. With two repositories you wouldn't know which one your account is in, and balances would silently disagree.
+- Collaborators go in as `@Bean` method **parameters** (`transferService(AccountRepository repo, FeePolicy fees)`), not as calls to other `@Bean` methods. That's constructor injection again, and it stays correct even without Spring's `@Configuration` subclass.
+- Ask for a bean by type (`getBean(TransferService.class)`), not by name. A typo becomes a compile error and there's no cast.
+- The context owns the beans, so close it. Use try-with-resources: `close()` runs even if an exception is thrown.
+- At three classes, `new` in `main` is honestly simpler. The container pays off as the object graph grows, and later when Spring wraps beans (`@Transactional`), picks them from config, and runs lifecycle callbacks.
