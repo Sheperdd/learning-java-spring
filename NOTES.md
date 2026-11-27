@@ -14,4 +14,6 @@ Shane's preferences and working notes. Update this whenever he states a preferen
 - Environment: Windows 11, Docker Desktop, gh CLI.
   - Java 25 LTS is being installed (Temurin, via winget).
   - Oracle Java 23 is also installed, and its `javapath` entry is on the system PATH. `~/.bashrc` pins `JAVA_HOME` so Java 25 wins.
+- From 01 M4 on he may bundle code and wrap-up docs into one PR instead of a separate `docs:` PR. That's fine for a solo learning repo; keep the commits separate (`docs:` commit for the wrap-up).
+- He uses the "just write it" escape hatch for test files ("write the test file, then explain why"). Write them, explain them, and don't log them as evidence of understanding.
 - Sometimes asks to skip the `/wrap-up` quiz and have Claude write the wrap-up files. Respect it, but open the next session with one retrieval question on the skipped topic (e.g. `isSameAs` vs `isEqualTo`).

@@ -17,6 +17,7 @@ Domain terms (Account, Transfer, Sender, Fee policy, …) are defined in [`../CO
 - [Spring Framework reference: Java-based container configuration](https://docs.spring.io/spring-framework/reference/core/beans/java.html) (its `TransferService` / `AccountRepository` example is where this project's shape comes from)
 - [Spring Framework reference: Dependency injection](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html)
 - [Spring Boot reference: Creating your own auto-configuration](https://docs.spring.io/spring-boot/reference/features/developing-auto-configuration.html) (for milestone 4's `@ConditionalOnProperty`)
+- [Spring Boot reference: Using the ApplicationRunner or CommandLineRunner](https://docs.spring.io/spring-boot/reference/features/spring-application.html) (milestone 4's `TransferDemo`)
 
 ## Milestones
 Each milestone is one feature branch and one PR.
@@ -24,14 +25,15 @@ Each milestone is one feature branch and one PR.
 - [x] **1. Account and repository** (PR #2): an immutable `Account` record (validated, with `withBalance`) and an in-memory `AccountRepository` (`findById` returning `Optional`, `save`). Plain JUnit tests, no Spring.
 - [x] **2. Transfers wired by hand** (PR #5): the `FeePolicy` interface with `FlatFeePolicy` ($1.50) and `NoFeePolicy`, and a `TransferService` enforcing the rules (sender pays the fee, insufficient funds, same account, non-positive amount, currency mismatch, all-or-nothing). A `HandWiredApp` `main` builds everything with `new`. Tests pass fakes in through constructors.
 - [x] **3. The Spring container, explicitly** (PR #7): an `AppConfig` with `@Configuration` and `@Bean`, started by `AnnotationConfigApplicationContext`. Prove beans are singletons, and swap the fee policy in one place.
-- [ ] **4. Spring Boot**: component scanning (`@Service`, `@Repository`), fee policy chosen by `bank.fees.policy=flat|none` via `@ConditionalOnProperty`, a `CommandLineRunner` demo transfer, and a `@SpringBootTest` for each property value. Compare with milestones 2 and 3.
+- [x] **4. Spring Boot** (PR #10): component scanning (`@Service`, `@Repository`), fee policy chosen by `bank.fees.policy=flat|none` via `@ConditionalOnProperty`, a `CommandLineRunner` demo transfer, and a `@SpringBootTest` for each property value. Compare with milestones 2 and 3.
 - [ ] **5. Scopes and lifecycle**: seed accounts in `@PostConstruct`, log on `@PreDestroy`, and run a singleton vs prototype experiment. Also: why a stateful singleton is a bug waiting for a second thread. That pays off the `ponytail:` plain-`HashMap` shortcut in `AccountRepository`, so fix it here.
 
 ## How to run
 ```bash
-./mvnw spring-boot:run   # run the app
+./mvnw spring-boot:run   # run the app (prints the demo transfer)
 ./mvnw test              # run the tests
 ```
+`bank.fees.policy` (`flat` or `none`) is required. The app refuses to start without it. Turn the startup demo off with `bank.demo.enabled=false`.
 
 ## What I learned
 <!-- Filled in by /wrap-up, in my own words. -->
@@ -53,3 +55,21 @@ Each milestone is one feature branch and one PR.
 - Ask for a bean by type (`getBean(TransferService.class)`), not by name. A typo becomes a compile error and there's no cast.
 - The context owns the beans, so close it. Use try-with-resources: `close()` runs even if an exception is thrown.
 - At three classes, `new` in `main` is honestly simpler. The container pays off as the object graph grows, and later when Spring wraps beans (`@Transactional`), picks them from config, and runs lifecycle callbacks.
+
+**Milestone 4**
+- `@Service` and `@Component` are only labels. `@SpringBootApplication` turns on component scanning, which reads them, from its own package downward. My `TransferDemo` didn't run until I added `@Component`, because `implements CommandLineRunner` doesn't make it a bean.
+- Each bean needs exactly one source. While `AppConfig` existed, its `@Bean transferService()` silently replaced my `@Service` class (same name, same type), so the annotation did nothing. That's why `AppConfig` was deleted, not kept beside scanning.
+- Two `FeePolicy` beans means Spring can't choose. `@ConditionalOnProperty` lets each policy say when it applies, so `bank.fees.policy` picks one, and a third policy is just one new class.
+- No default fee policy, on purpose. Whether a customer pays a fee is a business decision, so a missing property should stop startup (fail fast), not guess.
+- `CommandLineRunner`s also run in `@SpringBootTest`. Startup side effects need an off switch (`bank.demo.enabled`), so tests only depend on data they set up themselves.
+- Test what the customer sees: after a 50.00 transfer, Alice has 48.50 with `flat` and 50.00 with `none`. That proves the whole chain, property → bean → `TransferService` → balance. A type check would pass even if the fee were never charged.
+
+**M2 → M3 → M4: who wires the app?**
+
+| | M2 `HandWiredApp` | M3 `AppConfig` | M4 Spring Boot |
+|---|---|---|---|
+| Who calls `new` | me, in `main` | Spring, via my `@Bean` methods | Spring, via the constructor of each scanned class |
+| Where beans are listed | `main` | `AppConfig` | nowhere: annotations on the classes |
+| Choosing the fee policy | edit a line, recompile | edit `AppConfig`, recompile | change `bank.fees.policy`, no rebuild |
+| Adding a fee policy | new class + edit `main` | new class + edit `AppConfig` | new class only |
+| Who starts the context | n/a | me (`new AnnotationConfigApplicationContext`) | `SpringApplication.run` |

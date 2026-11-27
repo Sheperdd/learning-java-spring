@@ -2,9 +2,12 @@ package io.github.sheperdd.iocbasics.transfer;
 
 import java.math.BigDecimal;
 
+import org.springframework.stereotype.Service;
+
 import io.github.sheperdd.iocbasics.account.Account;
 import io.github.sheperdd.iocbasics.account.AccountRepository;
 
+@Service
 public class TransferService {
 
   private final AccountRepository accounts;
